@@ -14620,6 +14620,7 @@ license = stdenv.lib.licenses.bsd3;
 , cardano-sl-block
 , cardano-sl-block-test
 , cardano-sl-core
+, cardano-sl-core-test
 , cardano-sl-crypto
 , cardano-sl-crypto-test
 , cardano-sl-db
@@ -14815,6 +14816,7 @@ cardano-sl-binary-test
 cardano-sl-block
 cardano-sl-block-test
 cardano-sl-core
+cardano-sl-core-test
 cardano-sl-crypto
 cardano-sl-crypto-test
 cardano-sl-db
@@ -14891,6 +14893,7 @@ license = stdenv.lib.licenses.mit;
 , cardano-sl-block
 , cardano-sl-client
 , cardano-sl-core
+, cardano-sl-core-test
 , cardano-sl-crypto
 , cardano-sl-db
 , cardano-sl-generator
@@ -14962,6 +14965,7 @@ cardano-sl
 cardano-sl-block
 cardano-sl-client
 cardano-sl-core
+cardano-sl-core-test
 cardano-sl-crypto
 cardano-sl-db
 cardano-sl-generator
@@ -15620,10 +15624,8 @@ Cabal
 canonical-json
 cardano-sl-binary
 cardano-sl-crypto
-cardano-sl-crypto-test
 cardano-sl-networking
 cardano-sl-util
-cardano-sl-util-test
 cborg
 containers
 cryptonite
@@ -15635,15 +15637,12 @@ extra
 filepath
 fmt
 formatting
-generic-arbitrary
 hashable
 lens
 log-warper
 memory
 mtl
 plutus-prototype
-QuickCheck
-quickcheck-instances
 random
 reflection
 safe-exceptions
@@ -15667,12 +15666,19 @@ bytestring
 cardano-sl-binary
 cardano-sl-binary-test
 cardano-sl-crypto
+cardano-sl-crypto-test
+cardano-sl-util
 cardano-sl-util-test
+containers
 formatting
+generic-arbitrary
 hspec
 QuickCheck
+quickcheck-instances
+random
 serokell-util
 text
+time-units
 universum
 unordered-containers
 ];
@@ -15696,14 +15702,24 @@ license = stdenv.lib.licenses.mit;
 , cardano-sl-crypto-test
 , cardano-sl-delegation
 , cardano-sl-ssc
-, cpphs
+, cardano-sl-util
+, cardano-sl-util-test
+, containers
 , cryptonite
 , cryptonite-openssl
+, data-default
+, formatting
+, generic-arbitrary
 , hedgehog
+, hspec
+, mtl
 , pvss
 , QuickCheck
+, quickcheck-instances
+, random
 , serokell-util
 , stdenv
+, tagged
 , time-units
 , universum
 , unordered-containers
@@ -15724,19 +15740,27 @@ cardano-sl-crypto
 cardano-sl-crypto-test
 cardano-sl-delegation
 cardano-sl-ssc
+cardano-sl-util
+cardano-sl-util-test
+containers
 cryptonite
 cryptonite-openssl
+data-default
+formatting
+generic-arbitrary
 hedgehog
+hspec
+mtl
 pvss
 QuickCheck
+quickcheck-instances
+random
 serokell-util
+tagged
 time-units
 universum
 unordered-containers
 vector
-];
-libraryToolDepends = [
-cpphs
 ];
 doHaddock = false;
 description = "Cardano SL - core functionality (tests)";
@@ -15962,6 +15986,7 @@ license = stdenv.lib.licenses.mit;
 , base
 , cardano-sl-binary
 , cardano-sl-core
+, cardano-sl-core-test
 , cardano-sl-crypto
 , cardano-sl-crypto-test
 , cardano-sl-db
@@ -16008,6 +16033,7 @@ aeson
 base
 cardano-sl-binary
 cardano-sl-core
+cardano-sl-core-test
 cardano-sl-crypto
 cardano-sl-crypto-test
 cardano-sl-db
@@ -16058,6 +16084,7 @@ license = stdenv.lib.licenses.mit;
 , cardano-sl-block
 , cardano-sl-block-test
 , cardano-sl-core
+, cardano-sl-core-test
 , cardano-sl-crypto
 , cardano-sl-crypto-test
 , cardano-sl-db
@@ -16143,6 +16170,7 @@ cardano-sl-binary
 cardano-sl-block
 cardano-sl-block-test
 cardano-sl-core
+cardano-sl-core-test
 cardano-sl-crypto
 cardano-sl-crypto-test
 cardano-sl-db
@@ -16417,6 +16445,7 @@ license = stdenv.lib.licenses.mit;
 , cardano-report-server
 , cardano-sl-binary
 , cardano-sl-core
+, cardano-sl-core-test
 , cardano-sl-crypto
 , cardano-sl-db
 , cardano-sl-networking
@@ -16487,6 +16516,7 @@ bytestring
 cardano-report-server
 cardano-sl-binary
 cardano-sl-core
+cardano-sl-core-test
 cardano-sl-crypto
 cardano-sl-db
 cardano-sl-networking
@@ -16558,6 +16588,7 @@ license = stdenv.lib.licenses.mit;
 , bytestring
 , cardano-sl-binary
 , cardano-sl-core
+, cardano-sl-core-test
 , cardano-sl-crypto
 , cardano-sl-db
 , cardano-sl-networking
@@ -16595,6 +16626,7 @@ base
 bytestring
 cardano-sl-binary
 cardano-sl-core
+cardano-sl-core-test
 cardano-sl-crypto
 cardano-sl-db
 cardano-sl-networking
@@ -16618,6 +16650,7 @@ cpphs
 testHaskellDepends = [
 base
 cardano-sl-core
+cardano-sl-core-test
 cardano-sl-crypto
 cardano-sl-util-test
 containers
@@ -16635,6 +16668,7 @@ license = stdenv.lib.licenses.mit;
   mkDerivation
 , base
 , cardano-sl-core
+, cardano-sl-core-test
 , cardano-sl-lrc
 , cpphs
 , generic-arbitrary
@@ -16655,6 +16689,7 @@ configureFlags = [
 libraryHaskellDepends = [
 base
 cardano-sl-core
+cardano-sl-core-test
 cardano-sl-lrc
 generic-arbitrary
 QuickCheck
@@ -16869,6 +16904,7 @@ license = stdenv.lib.licenses.mit;
 , bytestring
 , cardano-sl-binary
 , cardano-sl-core
+, cardano-sl-core-test
 , cardano-sl-crypto
 , cardano-sl-crypto-test
 , cardano-sl-db
@@ -16923,6 +16959,7 @@ base
 bytestring
 cardano-sl-binary
 cardano-sl-core
+cardano-sl-core-test
 cardano-sl-crypto
 cardano-sl-crypto-test
 cardano-sl-db
@@ -17154,6 +17191,7 @@ license = stdenv.lib.licenses.mit;
 , bytestring
 , cardano-sl-binary
 , cardano-sl-core
+, cardano-sl-core-test
 , cardano-sl-crypto
 , cardano-sl-crypto-test
 , cardano-sl-db
@@ -17214,6 +17252,7 @@ base
 bytestring
 cardano-sl-binary
 cardano-sl-core
+cardano-sl-core-test
 cardano-sl-crypto
 cardano-sl-crypto-test
 cardano-sl-db
@@ -17262,6 +17301,7 @@ testHaskellDepends = [
 base
 cardano-sl-binary
 cardano-sl-core
+cardano-sl-core-test
 cardano-sl-crypto
 cardano-sl-crypto-test
 cardano-sl-util
@@ -17291,6 +17331,7 @@ license = stdenv.lib.licenses.mit;
 , base
 , cardano-sl-binary
 , cardano-sl-core
+, cardano-sl-core-test
 , cardano-sl-crypto
 , cardano-sl-crypto-test
 , cardano-sl-infra
@@ -17312,6 +17353,7 @@ libraryHaskellDepends = [
 base
 cardano-sl-binary
 cardano-sl-core
+cardano-sl-core-test
 cardano-sl-crypto
 cardano-sl-crypto-test
 cardano-sl-infra
@@ -17337,6 +17379,7 @@ license = stdenv.lib.licenses.mit;
 , Cabal
 , cardano-sl-binary
 , cardano-sl-core
+, cardano-sl-core-test
 , cardano-sl-crypto
 , cardano-sl-crypto-test
 , cardano-sl-db
@@ -17395,6 +17438,7 @@ bytestring
 Cabal
 cardano-sl-binary
 cardano-sl-core
+cardano-sl-core-test
 cardano-sl-crypto
 cardano-sl-crypto-test
 cardano-sl-db
@@ -17637,6 +17681,7 @@ license = stdenv.lib.licenses.mit;
 , cardano-sl-block
 , cardano-sl-client
 , cardano-sl-core
+, cardano-sl-core-test
 , cardano-sl-crypto
 , cardano-sl-crypto-test
 , cardano-sl-db
@@ -17792,6 +17837,7 @@ cardano-sl
 cardano-sl-block
 cardano-sl-client
 cardano-sl-core
+cardano-sl-core-test
 cardano-sl-crypto
 cardano-sl-crypto-test
 cardano-sl-db
@@ -17852,6 +17898,7 @@ license = stdenv.lib.licenses.mit;
 , cardano-sl-block
 , cardano-sl-client
 , cardano-sl-core
+, cardano-sl-core-test
 , cardano-sl-crypto
 , cardano-sl-db
 , cardano-sl-delegation
@@ -17958,6 +18005,7 @@ cardano-sl
 cardano-sl-block
 cardano-sl-client
 cardano-sl-core
+cardano-sl-core-test
 cardano-sl-crypto
 cardano-sl-db
 cardano-sl-infra
