@@ -98,7 +98,6 @@ test_script:
       -j 1
       --no-terminal
       --local-bin-path %WORK_DIR%
-      --test
       --no-haddock-deps
       --flag cardano-sl-core:-asserts
       --flag cardano-sl-tools:for-installer
