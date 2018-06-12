@@ -107,7 +107,7 @@ in pkgs.writeScript "demo-cluster" ''
   echo "Launching a demo cluster..."
   for i in {1..${builtins.toString numCoreNodes}}
   do
-    node_args="--db-path ${stateDir}/core-db''${i} --rebuild-db --genesis-secret ''${i} --listen 127.0.0.1:300''${i} --json-log ${stateDir}/logs/node''${i}.json --logs-prefix ${stateDir}/logs --system-start $system_start --metrics +RTS -N2 -qg -A1m -I0 -T -RTS --node-id core''${i} --topology ${topologyFile} --configuration-file ${configFiles}/configuration.yaml" --configuration-key ${configurationKey}
+    node_args="--db-path ${stateDir}/core-db''${i} --rebuild-db --genesis-secret ''${i} --listen 127.0.0.1:300''${i} --json-log ${stateDir}/logs/node''${i}.json --logs-prefix ${stateDir}/logs --system-start $system_start --metrics +RTS -N2 -qg -A1m -I0 -T -RTS --node-id core''${i} --topology ${topologyFile} --configuration-file ${configFiles}/configuration.yaml --configuration-key ${configurationKey}"
     echo Launching core node $i with args: $node_args
     cardano-node-simple $node_args &> /dev/null &
     core_pid[$i]=$!
@@ -122,7 +122,7 @@ in pkgs.writeScript "demo-cluster" ''
 
   done
   ${ifWallet ''
-    export LC_ALL=C.UTF-8
+    export LC_ALL=C
     echo Launching wallet node: ${demoWallet}
     ${demoWallet} --runtime-args "--system-start $system_start --configuration-key ${configurationKey}" &> /dev/null &
     wallet_pid=$!
