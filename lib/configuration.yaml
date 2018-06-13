@@ -14818,6 +14818,14 @@ testnet_full: &testnet_full
         file: testnet-genesis.json
         hash: 9f8a5f8682b46baf85bc6a87cec3fa843c4848481bcbacdbf511dde3899d315a
 
+  update: &testnet_full_update
+    applicationName: cardano-sl
+    applicationVersion: 0
+    lastKnownBlockVersion:
+      bvMajor: 0
+      bvMinor: 1
+      bvAlt: 0
+
 testnet_wallet: &testnet_wallet
   <<: *testnet_full
   update:
@@ -14840,9 +14848,9 @@ testnet_wallet_linux64: &testnet_wallet_linux64
 
 # Should be used to generate genesis
 testnet_launch: &testnet_launch
-  <<: *mainnet_base
+  <<: *testnet_full
   core: &testnet_gen_core
-    <<: *mainnet_base_core
+    <<: *testnet_full_core
     genesis:
       <<: *mainnet_base_genesis
       spec:
