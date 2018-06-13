@@ -30,7 +30,14 @@ let
     inherit stateDir;
     topologyFile = walletTopologyFile;
   };
-  demoWallet = pkgs.callPackage ./../connect-to-cluster ({ inherit gitrev; debug = false; environment = "demo"; } // walletConfig);
+  walletEnvironment = if launchGenesis then {
+    environment = "override";
+    relays = "127.0.0.1";
+    confKey = "testnet_full";
+  } else {
+    environment = "demo";
+  };
+  demoWallet = pkgs.callPackage ./../connect-to-cluster ({ inherit gitrev; debug = false; } // walletEnvironment // walletConfig);
   ifWallet = localLib.optionalString (runWallet);
   ifKeepAlive = localLib.optionalString (keepAlive);
   iohkPkgs = import ./../../.. { inherit config system pkgs gitrev; };
@@ -107,16 +114,16 @@ in pkgs.writeScript "demo-cluster" ''
   echo "Launching a demo cluster..."
   for i in {1..${builtins.toString numCoreNodes}}
   do
-    node_args="--db-path ${stateDir}/core-db''${i} --rebuild-db --genesis-secret ''${i} --listen 127.0.0.1:300''${i} --json-log ${stateDir}/logs/node''${i}.json --logs-prefix ${stateDir}/logs --system-start $system_start --metrics +RTS -N2 -qg -A1m -I0 -T -RTS --node-id core''${i} --topology ${topologyFile} --configuration-file ${configFiles}/configuration.yaml --configuration-key ${configurationKey}"
-    echo Launching core node $i with args: $node_args
+    node_args="--db-path ${stateDir}/core-db''${i} --rebuild-db --genesis-secret ''${i} --listen 127.0.0.1:$((3000 + i)) --json-log ${stateDir}/logs/node''${i}.json --logs-prefix ${stateDir}/logs --system-start $system_start --metrics +RTS -N2 -qg -A1m -I0 -T -RTS --node-id core''${i} --topology ${topologyFile} --configuration-file ${configFiles}/configuration.yaml --configuration-key ${configurationKey}"
+    echo Launching core node $i: cardano-node-simple $node_args
     cardano-node-simple $node_args &> /dev/null &
     core_pid[$i]=$!
 
   done
   for i in {1..${builtins.toString numRelayNodes}}
   do
-    node_args="--db-path ${stateDir}/relay-db''${i} --rebuild-db --listen 127.0.0.1:310''${i} --json-log ${stateDir}/logs/node''${i}.json --logs-prefix ${stateDir}/logs --system-start $system_start --metrics +RTS -N2 -qg -A1m -I0 -T -RTS --node-id relay''${i} --topology ${topologyFile} --configuration-file ${configFiles}/configuration.yaml"
-    echo Launching relay node $i with args: $node_args
+    node_args="--db-path ${stateDir}/relay-db''${i} --rebuild-db --listen 127.0.0.1:$((3100 + i)) --json-log ${stateDir}/logs/node''${i}.json --logs-prefix ${stateDir}/logs --system-start $system_start --metrics +RTS -N2 -qg -A1m -I0 -T -RTS --node-id relay''${i} --topology ${topologyFile} --configuration-file ${configFiles}/configuration.yaml --configuration-key ${configurationKey}"
+    echo Launching relay node $i: cardano-node-simple $node_args
     cardano-node-simple $node_args &> /dev/null &
     relay_pid[$i]=$!
 
@@ -124,14 +131,14 @@ in pkgs.writeScript "demo-cluster" ''
   ${ifWallet ''
     export LC_ALL=C
     echo Launching wallet node: ${demoWallet}
-    ${demoWallet} --runtime-args "--system-start $system_start --configuration-key ${configurationKey}" &> /dev/null &
+    ${demoWallet} --runtime-args "--system-start $system_start" &> /dev/null &
     wallet_pid=$!
   ''}
   # Query node info until synced
   SYNCED=0
   while [[ $SYNCED != 100 ]]
   do
-    PERC=$(curl --silent --cacert ${stateDir}/tls/client/ca.crt --cert ${stateDir}/tls/client/client.pem https://localhost:8090/api/v1/node-info | jq .data.syncProgress.quantity)
+    PERC=$(curl --silent --cacert ${stateDir}/tls/client/ca.crt --cert ${stateDir}/tls/client/client.pem https://${demoWallet.walletListen}/api/v1/node-info | jq .data.syncProgress.quantity)
     if [[ $PERC == "100" ]]
     then
       echo Blockchain Synced: $PERC%
