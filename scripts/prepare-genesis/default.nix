@@ -25,43 +25,42 @@ let
     json.dump(yaml.load(open(sys.argv[1])), sys.stdout)
   '';
 
-  genesisConfig = pkgs.stdenv.mkDerivation {
-    name = "genesis-config";
-    buildInputs = with pkgs; [ yaml2json jq python3 genesis-hash iohkPkgs.cardano-sl-tools ];
-    src = iohkPkgs.cardano-sl.src + "/configuration.yaml";
-    phases = [ "installPhase" ];
-    installPhase = ''
-      set -eo pipefail
-
-      mkdir -p $out
-      cd $out
-      cp $src $out/configuration-launch.yaml
-
-      # Generate very big random integer. For actual networks this
-      # should be kept secret in a safe place.
-      python -c "import secrets; print(secrets.randbelow(2**256))" > seed.txt
-
-      ${if systemStart != 0 then "echo ${toString systemStart}" else "date '+%s'"} > system-start.txt
-
-      cardano-keygen --system-start $(cat system-start.txt) \
-        --configuration-file configuration-launch.yaml \
-        --configuration-key ${configurationKeyLaunch} \
-        --configuration-seed $(cat seed.txt) \
-        dump-genesis-data --path genesis.json
-
-      genesis-hash genesis.json > hash.txt
-
-      # create updated configuration.yaml
-      sed $(yaml2json configuration-launch.yaml | jq -r ".${configurationKey}.core.genesis.src|@text \"-e s/\\(.file)/genesis.json/ -e s/\\(.hash)/$(cat hash.txt)/\"") < configuration-launch.yaml > configuration.yaml
-
-      cardano-keygen --system-start 0 \
-        --configuration-file configuration.yaml \
-        --configuration-key ${configurationKeyLaunch} \
-        --configuration-seed $(cat seed.txt) \
-        generate-keys-by-spec --genesis-out-dir ./genesis-keys
-    '';
-    passthru = { inherit genesis-hash; };
-  };
+  genesisTools = with pkgs; [ yaml2json jq python3 coreutils gnused iohkPkgs.cardano-sl-tools ];
+  configSource = iohkPkgs.cardano-sl.src + "/configuration.yaml";
 
 in
-  genesisConfig
+  pkgs.writeScript "prepare-genesis" ''
+    #!${pkgs.stdenv.shell}
+    set -euo pipefail
+
+    export PATH=${pkgs.lib.makeBinPath genesisTools}
+    src=${configSource}
+    out=$1
+
+    mkdir -p $out
+    sed -e 's/richmen:.*/richmen: ${toString numCoreNodes}/g' $src > $out/configuration-launch.yaml
+    cd $out
+
+    # Generate very big random integer. For actual networks this
+    # should be kept secret in a safe place.
+    python -c "import secrets; print(secrets.randbelow(2**256))" > seed.txt
+
+    ${if systemStart != 0 then "echo ${toString systemStart}" else "date '+%s'"} > system-start.txt
+
+    cardano-keygen --system-start $(cat system-start.txt) \
+      --configuration-file configuration-launch.yaml \
+      --configuration-key ${configurationKeyLaunch} \
+      --configuration-seed $(cat seed.txt) \
+      dump-genesis-data --path genesis.json
+
+    genesis-hash genesis.json > hash.txt
+
+    # create updated configuration.yaml
+    sed $(yaml2json configuration-launch.yaml | jq -r ".${configurationKey}.core.genesis.src|@text \"-e s/\\(.file)/genesis.json/ -e s/\\(.hash)/$(cat hash.txt)/\"") configuration-launch.yaml > configuration.yaml
+
+    cardano-keygen --system-start 0 \
+      --configuration-file configuration.yaml \
+      --configuration-key ${configurationKeyLaunch} \
+      --configuration-seed $(cat seed.txt) \
+      generate-keys-by-spec --genesis-out-dir ./genesis-keys
+  ''

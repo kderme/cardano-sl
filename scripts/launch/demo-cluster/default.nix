@@ -50,20 +50,19 @@ let
       fallbacks = 1;
     };
   });
-  configFiles = if launchGenesis
-    then
-      import ../../prepare-genesis {
-        inherit config system pkgs gitrev;
-        configurationKey = "testnet_full";
-        configurationKeyLaunch = "testnet_launch";
-      }
-    else pkgs.runCommand "cardano-config" {} ''
+  configFiles = pkgs.runCommand "cardano-config" {} ''
       mkdir -pv $out
       cd $out
       cp -vi ${iohkPkgs.cardano-sl.src + "/configuration.yaml"} configuration.yaml
       cp -vi ${iohkPkgs.cardano-sl.src + "/mainnet-genesis-dryrun-with-stakeholders.json"} mainnet-genesis-dryrun-with-stakeholders.json
       cp -vi ${iohkPkgs.cardano-sl.src + "/mainnet-genesis.json"} mainnet-genesis.json
     '';
+  prepareGenesis = import ../../prepare-genesis {
+    inherit config system pkgs gitrev numCoreNodes;
+    configurationKey = "testnet_full";
+    configurationKeyLaunch = "testnet_launch";
+  };
+
 in pkgs.writeScript "demo-cluster" ''
   #!${pkgs.stdenv.shell}
   export PATH=${pkgs.lib.makeBinPath demoClusterDeps}
@@ -99,39 +98,40 @@ in pkgs.writeScript "demo-cluster" ''
 
   # Remove previous state
   rm -rf ${stateDir}
-  mkdir -p ${stateDir}
+  mkdir -p ${stateDir}/logs
 
   ${if launchGenesis then ''
-    echo "Copying genesis keys..."
-    cp --no-preserve=mode -Rv ${configFiles}/genesis-keys ${stateDir}
-    DEMO_GENESIS_KEYS_DIR=$(realpath ${stateDir}/genesis-keys/generated-keys/rich)
+    echo "Creating genesis data and keys using external method..."
+    config_files=${stateDir}
+    ${prepareGenesis} $config_files
   '' else ''
     echo "Creating genesis keys..."
-    cardano-keygen --system-start 0 generate-keys-by-spec --genesis-out-dir ${stateDir}/genesis-keys --configuration-file ${configFiles}/configuration.yaml --configuration-key ${configurationKey}
+    config_files=${configFiles}
+    cardano-keygen --system-start 0 generate-keys-by-spec --genesis-out-dir ${stateDir}/genesis-keys --configuration-file $config_files/configuration.yaml --configuration-key ${configurationKey}
   ''}
 
   trap "stop_cardano" INT TERM
   echo "Launching a demo cluster..."
   for i in {1..${builtins.toString numCoreNodes}}
   do
-    node_args="--db-path ${stateDir}/core-db''${i} --rebuild-db --genesis-secret ''${i} --listen 127.0.0.1:$((3000 + i)) --json-log ${stateDir}/logs/node''${i}.json --logs-prefix ${stateDir}/logs --system-start $system_start --metrics +RTS -N2 -qg -A1m -I0 -T -RTS --node-id core''${i} --topology ${topologyFile} --configuration-file ${configFiles}/configuration.yaml --configuration-key ${configurationKey}"
+    node_args="--db-path ${stateDir}/core-db$i --rebuild-db ${if launchGenesis then "--keyfile ${stateDir}/genesis-keys/generated-keys/rich/key$((i - 1)).sk" else "--genesis-secret $i"} --listen 127.0.0.1:$((3000 + i)) --json-log ${stateDir}/logs/core$i.json --logs-prefix ${stateDir}/logs --system-start $system_start --metrics +RTS -N2 -qg -A1m -I0 -T -RTS --node-id core$i --topology ${topologyFile} --configuration-file $config_files/configuration.yaml --configuration-key ${configurationKey}"
     echo Launching core node $i: cardano-node-simple $node_args
-    cardano-node-simple $node_args &> /dev/null &
+    cardano-node-simple $node_args &> ${stateDir}/logs/core$i.txt &
     core_pid[$i]=$!
 
   done
   for i in {1..${builtins.toString numRelayNodes}}
   do
-    node_args="--db-path ${stateDir}/relay-db''${i} --rebuild-db --listen 127.0.0.1:$((3100 + i)) --json-log ${stateDir}/logs/node''${i}.json --logs-prefix ${stateDir}/logs --system-start $system_start --metrics +RTS -N2 -qg -A1m -I0 -T -RTS --node-id relay''${i} --topology ${topologyFile} --configuration-file ${configFiles}/configuration.yaml --configuration-key ${configurationKey}"
+    node_args="--db-path ${stateDir}/relay-db$i --rebuild-db --listen 127.0.0.1:$((3100 + i)) --json-log ${stateDir}/logs/relay$i.json --logs-prefix ${stateDir}/logs --system-start $system_start --metrics +RTS -N2 -qg -A1m -I0 -T -RTS --node-id relay$i --topology ${topologyFile} --configuration-file $config_files/configuration.yaml --configuration-key ${configurationKey}"
     echo Launching relay node $i: cardano-node-simple $node_args
-    cardano-node-simple $node_args &> /dev/null &
+    cardano-node-simple $node_args &> ${stateDir}/logs/relay$i.txt &
     relay_pid[$i]=$!
 
   done
   ${ifWallet ''
     export LC_ALL=C
     echo Launching wallet node: ${demoWallet}
-    ${demoWallet} --runtime-args "--system-start $system_start" &> /dev/null &
+    ${demoWallet} --runtime-args "--system-start $system_start" &> ${stateDir}/logs/wallet.txt &
     wallet_pid=$!
   ''}
   # Query node info until synced
