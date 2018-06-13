@@ -27,10 +27,22 @@ before_test:
 - cd "%WORK_DIR%"
 # Restore cache
 - Echo %APPVEYOR_BUILD_VERSION% > build-id
-- ps: Write-Host "before"
-- ps: powershell .\pagefile.ps
-- ps: Write-Host "after"
 - ps: >-
+    Write-Host "in pagefile script"
+    $c = Get-WmiObject Win32_computersystem -EnableAllPrivileges
+    if($c.AutomaticManagedPagefile){
+      Write-Host "disabling managed page file settings"
+      $c.AutomaticManagedPagefile = $false
+      $c.Put() | Out-Null
+    }
+    $new_page_size=18000
+    $CurrentPageFile = Get-WmiObject -Class Win32_PageFileSetting
+    if($CurrentPageFile.InitialSize -ne $new_page_size){
+      Write-Host "setting new page file size to $new_page_size"
+      $CurrentPageFile.InitialSize=$new_page_size
+      $CurrentPageFile.MaximumSize=$new_page_size
+      $CurrentPageFile.Put() | Out-Null
+    }
     if ( $env:CACHE_S3_READY -eq $true ) {
       Start-FileDownload https://github.com/fpco/cache-s3/releases/download/$env:CACHE_S3_VERSION/cache-s3-$env:CACHE_S3_VERSION-windows-x86_64.zip -FileName cache-s3.zip
       7z x cache-s3.zip cache-s3.exe
