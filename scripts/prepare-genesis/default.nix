@@ -15,21 +15,7 @@ with localLib;
 let
   iohkPkgs = import ./../.. { inherit config system pkgs gitrev; };
 
-  ghc = iohkPkgs.ghc.withPackages (ps: [ ps.cryptonite ps.canonical-json ]);
   python = pkgs.python3.withPackages (ps: [ ps.pyyaml ]);
-
-  genesis-hash = pkgs.stdenv.mkDerivation {
-    name = "genesis-hash";
-    src = ./genesis-hash.hs;
-    buildInputs = [ ghc ];
-    phases = [ "installPhase" ];
-    installPhase = ''
-      mkdir -pv $out/bin
-      echo "src is $src"
-      ghc $src -o $out/bin/genesis-hash
-    '';
-    shellHook = "eval $(egrep ^export ${ghc}/bin/ghc)";
-  };
 
   yaml2json = pkgs.writeScriptBin "yaml2json" ''
     #!${python}/bin/python
