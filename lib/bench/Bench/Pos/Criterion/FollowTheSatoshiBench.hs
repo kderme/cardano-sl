@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -fno-warn-orphans #-}
 module Bench.Pos.Criterion.FollowTheSatoshiBench
     ( runBenchmark
     ) where
@@ -14,9 +13,9 @@ import           Pos.Core (HasConfiguration)
 import           Pos.Core.Common (Coin, StakeholderId)
 import           Pos.Lrc (followTheSatoshi)
 
-import           Test.Pos.Util.QuickCheck.Arbitrary (arbitraryUnsafe)
-import           Test.Pos.Crypto.Arbitrary ()
 import           Bench.Configuration (giveCoreConf)
+import           Test.Pos.Crypto.Arbitrary ()
+import           Test.Pos.Util.QuickCheck.Arbitrary (arbitraryUnsafe)
 
 type UtxoSize = Int
 
@@ -36,4 +35,4 @@ ftsConfig = defaultConfig
     }
 
 runBenchmark :: IO ()
-runBenchmark = giveCoreConf $ defaultMainWith ftsConfig $ map ftsBench [1000, 10000, 100000]
+runBenchmark = giveCoreConf $ const $ defaultMainWith ftsConfig $ map ftsBench [1000, 10000, 100000]

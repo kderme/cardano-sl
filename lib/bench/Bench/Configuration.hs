@@ -6,6 +6,7 @@ import           Universum
 
 import qualified Data.Aeson as J
 import           Pos.Core (HasConfiguration, withGenesisSpec)
+import           Pos.Crypto (ProtocolMagic)
 import           Pos.Launcher.Configuration (Configuration (..))
 import           Pos.Util.Config (embedYamlConfigCT)
 
@@ -16,5 +17,5 @@ benchConf = case J.fromJSON $ J.Object jobj of
   where
     jobj = $(embedYamlConfigCT (Proxy @J.Object) "configuration.yaml" "configuration.yaml" "test")
 
-giveCoreConf :: (HasConfiguration => r) -> r
+giveCoreConf :: (HasConfiguration => ProtocolMagic -> r) -> r
 giveCoreConf = withGenesisSpec 0 (ccCore benchConf)
