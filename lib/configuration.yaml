@@ -14811,7 +14811,7 @@ mainnet_wallet_linux64: &mainnet_wallet_linux64
 
 testnet_full: &testnet_full
   <<: *mainnet_base
-  core:
+  core: &testnet_full_core
     <<: *mainnet_base_core
     genesis:
       src:
