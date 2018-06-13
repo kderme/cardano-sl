@@ -27,7 +27,9 @@ before_test:
 - cd "%WORK_DIR%"
 # Restore cache
 - Echo %APPVEYOR_BUILD_VERSION% > build-id
-- ps: .\pagefile.ps
+- ps: Write-Host "before"
+- ps: powershell .\pagefile.ps
+- ps: Write-Host "after"
 - ps: >-
     if ( $env:CACHE_S3_READY -eq $true ) {
       Start-FileDownload https://github.com/fpco/cache-s3/releases/download/$env:CACHE_S3_VERSION/cache-s3-$env:CACHE_S3_VERSION-windows-x86_64.zip -FileName cache-s3.zip
