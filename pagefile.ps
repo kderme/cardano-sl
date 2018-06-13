@@ -1,3 +1,4 @@
+Write-Host in pagefile script
 $c = Get-WmiObject Win32_computersystem -EnableAllPrivileges
 if($c.AutomaticManagedPagefile){
   Write-Host disabling managed page file settings
